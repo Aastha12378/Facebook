@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const friendshipSchema = new mongoose.Schema(
     {
-        sender: {
+        senderId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
             require : true
@@ -12,11 +12,11 @@ const friendshipSchema = new mongoose.Schema(
             ref: 'User',
             require : true
         },
-        // status: {
-        //     type: String, 
-        //     enum: ['pending', 'accepted'],
-        //     default: 'pending'
-        // },
+        status: {
+            type: String, 
+            enum: ['pending', 'accepted' , 'rejected'],
+            default: 'pending'
+        },
     },
     { timestamps: true }
 );

@@ -24,11 +24,12 @@ const Navbar = () => {
       if (query.trim() === '') {
         response = await request(`/user/findAll`, "GET");
       } else {
-        response = await request(`/user/search/userId=${userData?._id}&query=${query}`, "GET");
+         response = await request("/user/searchFriend/"+query, "GET",{ 'Authorization': `Bearer ${localStorage.getItem("token")}` })
       }
+        console.log("🚀 ~ file: Navbar.jsx:29 ~ handleSearch ~ response:", response)
 
       // const users = await response.json();
-      setSearchResults(response);
+      if(response?.users?.length>0)setSearchResults(response.users);
     } catch (error) {
       console.error('Error searching users:', error);
     } finally {
@@ -55,7 +56,6 @@ const Navbar = () => {
     localStorage.clear()
     navigate('/auth')
   }
-
   return (
     <>
       <div className="container-fluid p-0">
@@ -86,7 +86,6 @@ const Navbar = () => {
               </form>
               {searchResults.length > 0 && (
                 <div className="dropdown">
-                  <button className="dropbtn">Search Results</button>
                   <div className="dropdown-content">
                     {searchResults.map((user) => (
                       <div key={user._id} onClick={() => handleProfileClick(user._id)}>
@@ -97,7 +96,7 @@ const Navbar = () => {
                 </div>
               )}
 
-              <img src={userData?.profilePic ? `http://localhost:3001/images/${userData?.profilePic}` : person} className="personImg img-fluid" alt='person' onClick={toggleModal} />
+              <img src={userData?.profilePic ? `http://localhost:3001/images/` + userData?.profilePic : person} className="personImg img-fluid" alt='person' onClick={toggleModal} />
               {showModal && (
                 <div className="modal">
                   <span onClick={handleLogout} className="logout">logout</span>

@@ -28,7 +28,8 @@ const UpdatedProfile = () => {
         let coverPicName = null
 
         if (profilePic) {
-            profilePicName = crypto.randomUUID() + profilePic
+            console.log("🚀 ~ file: UpdatedProfile.jsx:31 ~ handleUpdate ~ profilePic:", profilePic)
+            profilePicName = crypto.randomUUID() + user.email?.split('@')?.[0]
             const formData = new FormData()
             formData.append("imageUrl", profilePicName)
             formData.append("photo", profilePic)
@@ -37,7 +38,8 @@ const UpdatedProfile = () => {
         }
 
         if (coverPic) {
-            coverPicName = crypto.randomUUID() + coverPicName
+            console.log("🚀 ~ file: UpdatedProfile.jsx:41 ~ handleUpdate ~ coverPic:", coverPic)
+            coverPicName = crypto.randomUUID() + user.email?.split('@')?.[0]
             const formData = new FormData()
             formData.append("imageUrl", coverPicName)
             formData.append("photo", coverPic)
@@ -51,9 +53,10 @@ const UpdatedProfile = () => {
         }
 
         const data = await request(`/user/update/${user._id}`, 'PUT', headers, body)
-
-        console.log("🚀 ~ file: UpdatedProfile.jsx:55 ~ handleUpdate ~ data:", data)
-        navigate(`/profile/${user._id}`)
+        if(data?._id){
+          localStorage.setItem('user',JSON.stringify(data))
+          navigate(`/profile/${user._id}`)
+        }
     } catch (error) {
         console.error(error)
     }

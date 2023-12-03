@@ -27,7 +27,6 @@ const Home = () => {
               </div>
               <div className="col-lg-4">
                 <FriendRequestsPage />
-                <Friends />
               </div>
             </div>
           </div>

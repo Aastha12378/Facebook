@@ -9,19 +9,19 @@ import Post from '../post/Post'
 
 const Profile = () => {
 
-  const user = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
 
   const { id } = useParams();
   const [userPosts, setUserPosts] = useState([])
-  const [isFollowed, setIsFollowed] = useState(user.followings.includes(id))
-  const [profileDetails, setProfileDetails] = useState("")
-  const [coverPicFile, setCoverPicFile] = useState(null);
-  const [profilePicFile, setProfilePicFile] = useState(null);
+  const [profileDetails, setProfileDetails] = useState("");
+  const [user,setUser]=useState(JSON.parse(localStorage.getItem("user")))
+  // const [coverPicFile, setCoverPicFile] = useState(null);
+  // const [profilePicFile, setProfilePicFile] = useState(null);
 
   const BACKEND_URL = `http://localhost:3001/images/`
 
   useEffect(() => {
+    console.log("--------")
     const fetchPosts = async () => {
       try {
         const posts = await request(`/post/find/userposts/${id}`, 'GET')
@@ -31,76 +31,55 @@ const Profile = () => {
       }
     }
     fetchPosts()
-  }, [id])
+  }, [])
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const user = await request(`/user/find/${id}`, 'GET')
-      setProfileDetails(user)
+      const searchedUser = await request(`/user/find/${id}`, 'GET')
+      setProfileDetails(searchedUser)
+
+      const loginUser = await request(`/user/find/${user?._id}`, 'GET')
+      setUser(loginUser)
     }
     fetchUserData()
-  }, [id])
+  }, [])
 
-  const handleFollow = async () => {
+  const handleSendRequest = async () => {
     try {
-      const headers = {
-        'Authorization': `Bearer ${token}`
+      const headers = {'Authorization': `Bearer ${token}`}
+      let data = await request(`/user/follow/${id}`, "PUT", headers)
+      if (data?.user) {
+        setUser(data?.user)
       }
-
-      if (user.followings.includes(id)) {
-        await request(`/user/unfollow/${id}`, "PUT", headers)
-      } else {
-        await request(`/user/follow/${id}`, "PUT", headers)
+    } catch (error) {
+      console.error(error)
+    }
+  }
+  const handleRejectRequest = async () => {
+    try {
+      const headers = {'Authorization': `Bearer ${token}`}
+      let data = await request(`/user/reject-request/${id}`, "PUT", headers)
+      if (data?.user) {
+        setUser(data?.user)
       }
-
-      setIsFollowed(prev => !prev)
     } catch (error) {
       console.error(error)
     }
   }
 
-  const handleCoverPicChange = (e) => {
-    setCoverPicFile(e.target.files[0].name);
-  }
-
-  const handleProfilePicChange = (e) => {
-    setProfilePicFile(e.target.files[0].name);
-  }
-
-  const handleUpdateImages = async () => {
+  const handleUnFollow=async()=>{
     try {
-      const formData = new FormData();
-
-      if (coverPicFile) {
-        formData.append('coverPic', coverPicFile);
+      const headers = {'Authorization': `Bearer ${token}`}
+      let data = await request(`/user/unfollow/${id}`, "PUT", headers)
+      if (data?.user) {
+        setUser(data?.user)
       }
-
-      if (profilePicFile) {
-        formData.append('profilePic', profilePicFile);
-      }
-
-      const headers = {
-        'Authorization': `Bearer ${token}`
-      };
-
-      await request(`/user/update/${id}`, {
-        method: 'PUT',
-        headers,
-        body: formData,
-      });
-
-      const updatedUser = await request(`/user/find/${id}`, 'GET');
-      setProfileDetails(updatedUser);
-      console.log("🚀 ~ file: Profile.jsx:97 ~ handleUpdateImages ~ updatedUser:", updatedUser)
-
-      setCoverPicFile(null);
-      setProfilePicFile(null);
     } catch (error) {
-      console.log(error);
+      console.error(error)
     }
   }
 
-  // console.log(userPosts)
+  console.log(user,id)
   return (
     <>
       <div className="container-p">
@@ -130,7 +109,14 @@ const Profile = () => {
             <div className="profileData">
               <h2 className="username">{profileDetails?.username}</h2>
               {id !== user._id && (
-                <button className="followBtn" onClick={handleFollow}>{user.followings.includes(id) ? "Followed" : "Follow"}</button>
+                <>
+                {(user.followers?.includes(id)||user.followings?.includes(id))
+                ?<button className="followBtn" onClick={handleUnFollow}>Unfollow</button>
+                :user.sendingReq.includes(id)
+                ?<button className="followBtn" onClick={handleRejectRequest}>Requested</button>
+                :<button className="followBtn" onClick={handleSendRequest}>Follow</button>
+                }
+                </>
               )}
             </div>
 

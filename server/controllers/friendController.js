@@ -4,29 +4,38 @@ const FriendRequest = require('../models/Friend');
 // Create friend request
 const createFriendRequest = async (req, res) => {
   try {
-    const { senderId, receiverId } = req.body;
-    console.log("🚀 ~ file: friendController.js:8 ~ createFriendRequest ~ req.body:", req.body)
+    const senderId = req.user.id;
+    const recipientId = req.params.userId;
 
-    const existingRequest = await FriendRequest.findOne({ senderId, receiverId });
+    const existingRequest = await FriendRequest.findOne({ senderId, recipientId });
+    console.log(existingRequest);
+
     if (existingRequest) {
-      return res.status(400).json({ error: 'Friend request already sent' });
+      return res.status(400).json({ error: 'Friend request already sent.' });
     }
 
-    const friendRequest = new FriendRequest({ senderId, receiverId });
+    const friendRequest = new FriendRequest({
+      senderId,
+      recipientId,
+      status: 'pending',
+    });
+
     await friendRequest.save();
 
-    res.status(201).json({ message: 'Friend request sent successfully' });
+    res.status(201).json({ message: 'Friend request sent successfully.' });
   } catch (error) {
-    console.error(error);
+    console.error('Error sending friend request:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
 const getFriendRequests = async (req, res) => {
   try {
-    const { userId } = req.params;
+    const { userId } = req.user.id;
+    // console.log("🚀 ~ file: friendController.js:34 ~ getFriendRequests ~ userId:", req.user.id)
 
-    const friendRequests = await FriendRequest.find({ receiverId: userId }).populate('senderId', 'username');
+    const friendRequests = await FriendRequest.find({ recipientId: userId }).populate('senderId', 'username');
+    // console.log("🚀 ~ file: friendController.js:37 ~ getFriendRequests ~ friendRequests:", friendRequests)
     res.json(friendRequests);
   } catch (error) {
     console.error(error);
@@ -34,26 +43,35 @@ const getFriendRequests = async (req, res) => {
   }
 };
 
+
 const respondToFriendRequest = async (req, res) => {
   try {
-    const { requestId, response } = req.body;
-    console.log("🚀 ~ file: friendController.js:42 ~ respondToFriendRequest ~ req.body:", req.body)
+    const response = req.params.response;
+    const requestId = req.params.requestId;
 
     const friendRequest = await FriendRequest.findById(requestId);
+
     if (!friendRequest) {
-      return res.status(404).json({ error: 'Friend request not found' });
+      return res.status(404).json({ error: 'Friend request not found.' });
+    }
+
+    if (friendRequest.recipientId !== req.user._id) {
+      return res.status(403).json({ error: 'Permission denied.' });
     }
 
     if (response === 'accept') {
-      await User.findByIdAndUpdate(friendRequest.sender, { $addToSet: { friends: friendRequest.receiver } });
-      await User.findByIdAndUpdate(friendRequest.receiver, { $addToSet: { friends: friendRequest.sender } });
+      friendRequest.status = 'accepted';
+    } else if (response === 'reject') {
+      friendRequest.status = 'rejected';
+    } else {
+      return res.status(400).json({ error: 'Invalid response.' });
     }
 
-    await FriendRequest.findByIdAndDelete(requestId);
+    await friendRequest.save();
 
-    res.json({ message: 'Friend request processed successfully' });
+    res.status(200).json({ message: 'Friend request responded successfully.' });
   } catch (error) {
-    console.error(error);
+    console.error('Error responding to friend request:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };

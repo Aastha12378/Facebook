@@ -1,29 +1,14 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import "./Friends.scss"
-import { request } from '../../util/Request'
 import person from '../../img/person1.jpg'
 import { Link } from 'react-router-dom'
 
-const Friends = () => {
-
-  const user = JSON.parse(localStorage.getItem("user"))
-  const [friends, setFriends] = useState([]);
-
-  useEffect(() => {
-    const fetchFriends = async () => {
-      const friends = await request(`/user/find/userfriends/${user._id}`, "GET")
-      // console.log("🚀 ~ file: Friends.jsx:15 ~ fetchFriends ~ friends:", friends)
-      setFriends(friends)
-    }
-    fetchFriends()
-  }, [user._id])
-
-
+const Friends = ({friends}) => {
   return (
-
     <>
-      <div className="container-f">
-        <div className="wrapper-f">
+      <div className="container-f mt-4">
+      <h2>Friends</h2>
+        <div className="justify-content-center">
           {friends?.length > 0 ? <h3>Your friends</h3> : ''}
           {friends?.length > 0 ? friends?.map((friend) => (
             <Link to={`/profile/${friend._id}`} key={friend._id} className="friend">
@@ -31,7 +16,7 @@ const Friends = () => {
               <span className='text-decoration-none'>{friend.username}</span>
             </Link>
           ))
-            : <h3 style={{ textAlign: 'center' }}>You currently have no friends</h3>}
+            : <h5 style={{ textAlign: 'center' }}>You currently have no friends</h5>}
         </div>
       </div>
     </>

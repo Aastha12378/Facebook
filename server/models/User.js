@@ -34,7 +34,15 @@ const UserSchema = new mongoose.Schema({
     posts: {
         type: Array,
         default: []
-    }
+    },
+    sendingReq: {
+        type: Array,
+        default: []
+    },
+    pendingReq: {
+        type: Array,
+        default: []
+    },
 }, { timestamps: true })
 
 module.exports = mongoose.model("User", UserSchema)

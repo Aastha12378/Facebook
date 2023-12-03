@@ -133,19 +133,15 @@ const pendingRequests = async (req, res) => {
   }
 };
 
-const search = async (req, res) => {
+const searchFriend = async (req, res) => {
   try {
     const { query } = req.params;
+    console.log("🚀 ~ file: userController.js:139 ~ search ~ query:", query)
 
-    const users = await User.find({ username: new RegExp(query, 'i') }).select("username");
+    const users = await User.find({ username:  { $regex: new RegExp(query, 'i') } });
+    console.log("🚀 ~ file: userController.js:143 ~ search ~ users:", users.length)
 
-    const filteredUsers = users.filter((user) => {
-      return user.username && user.username.toLowerCase().includes("");
-    });
-    // console.log("Filtered Users:", filteredUsers);
-
-    res.status(200).json(filteredUsers);
-
+    res.status(200).json({ users });
   } catch (error) {
     console.error('Error searching for users:', error);
     res.status(500).json({ message: 'Internal Server Error' });
@@ -182,7 +178,7 @@ const getUserFriends = async (req, res) => {
     );
 
     if (userFriends.length > 0) {
-      return res.status(200).json(userFriends);
+      return res.status(200).json({data:userFriends});
     } else {
       throw new Error("You have no friends");
     }
@@ -191,16 +187,17 @@ const getUserFriends = async (req, res) => {
   }
 };
 
-const followUser = async (req, res) => {
+const sendRequest = async (req, res) => {
   try {
     const { id: friendId } = req.params;
-    const { userId } = req.body;
+    const userId = req.user.id;
 
     if (friendId === userId) {
       return res.status(400).json({ msg: "Can't follow yourself" });
     }
 
     const friend = await User.findById(friendId);
+    console.log("🚀 ~ file: userController.js:200 ~ sendRequest ~ friend:", friend)
 
     if (!friend) {
       return res.status(404).json({ msg: "User not found" });
@@ -210,10 +207,10 @@ const followUser = async (req, res) => {
       return res.status(400).json({ msg: "Can't follow the same user twice" });
     }
 
-    await User.findByIdAndUpdate(req.params.id, { $push: { followers: req.user.id } });
-    // await User.findByIdAndUpdate(req.user.id, { $push: { followings: req.params.id } });
-
-    return res.status(200).json({ msg: "User successfully followed" });
+    await User.findByIdAndUpdate(friendId, { $push: { pendingReq: userId } });
+    await User.findByIdAndUpdate(userId, { $push: { sendingReq: friendId } });
+    const user = await User.findById(userId);
+    return res.status(200).json({ user});
   } catch (error) {
     return res.status(500).json({ msg: error.message });
   }
@@ -222,7 +219,7 @@ const followUser = async (req, res) => {
 const unfollowUser = async (req, res) => {
   try {
     const { id: friendId } = req.params;
-    const { userId } = req.body;
+    const userId = req.user.id;
     
     const friend = await User.findById(friendId);
 
@@ -230,14 +227,50 @@ const unfollowUser = async (req, res) => {
       return res.status(404).json({ msg: "User does not exist" });
     }
 
+    await User.findByIdAndUpdate(friendId, { $pull: { followers: userId,followings:userId } });
+    await User.findByIdAndUpdate(userId, { $pull: { followings: friendId,followers:friendId } });
+    const user = await User.findById(userId);
+
+    return res.status(200).json({ user });
+  } catch (error) {
+    return res.status(500).json({ msg: error.message });
+  }
+};
+
+const rejectSendingRequest = async (req, res) => {
+  try {
+    const { id: friendId } = req.params;
+    const userId = req.user.id;
+    const friend = await User.findById(friendId);
+    if (!friend) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+    
+    await User.findByIdAndUpdate(friendId, { $pull: { pendingReq: userId ,sendingReq:userId} });
+    await User.findByIdAndUpdate(userId, { $pull: { sendingReq: friendId,pendingReq:friendId } });
+    const user = await User.findById(userId);
+    return res.status(200).json({ user});
+  } catch (error) {
+    return res.status(500).json({ msg: error.message });
+  }
+};
+
+const acceptRequest = async (req, res) => {
+  try {
+    const { id: friendId } = req.params;
+    const userId = req.user.id;
+    const friend = await User.findById(friendId);
+    if (!friend) {
+      return res.status(404).json({ msg: "User not found" });
+    }
     if (friend.followers.includes(userId)) {
-      return res.status(400).json({ msg: "Can't unfollow someone you don't follow in the first place" });
+      return res.status(400).json({ msg: "Can't follow the same user twice" });
     }
 
-    await User.findByIdAndUpdate(req.params.id, { $pull: { followers: req.user.id } });
-    // await User.findByIdAndUpdate(req.user.id, { $pull: { followings: req.params.id } });
 
-    return res.status(200).json({ msg: "User successfully unfollowed" });
+    await User.findByIdAndUpdate(friendId, { $push: { followers: userId }, $pull: { sendingReq: userId } });
+await User.findByIdAndUpdate(userId, { $push: { followings: friendId }, $pull: {  pendingReq: friendId } });
+    return res.status(200).json({msg:"Accepted"});
   } catch (error) {
     return res.status(500).json({ msg: error.message });
   }
@@ -298,17 +331,40 @@ const searchUsers = async (req, res) => {
   }
 };
 
+const getPendingRequest=async(req,res)=>{
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      throw new Error("User does not exists");
+    }
+    const { pendingReq } = user;
+    const data={
+      pendingUsers:pendingReq,
+      user
+    }
+    if(pendingReq?.length>0){
+      const pendingUsers = await User.find({ _id: { $in: pendingReq } });
+      data.pendingUsers = pendingUsers;
+    }
+    return res.status(200).json(data);
+  } catch (error) {
+    return res.status(500).json(error.message);
+  }
+}
 module.exports = {
   getUser,
   updateUser,
   pendingRequests,
-  search,
+  searchFriend,
   deleteUser,
   // sendRequest,
   getUserFriends,
-  followUser,
+  sendRequest,
   unfollowUser,
   getAll,
   view, data,
-  searchUsers
+  searchUsers,
+  rejectSendingRequest,
+  acceptRequest,
+  getPendingRequest
 };

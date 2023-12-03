@@ -1,6 +1,5 @@
 import React from 'react';
 import FriendRequests from './FriendRequests.js';
-// import FriendRequests from '../components/FriendRequests';
 
 const FriendRequestsPage = () => {
     //   const userId =

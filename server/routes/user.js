@@ -1,5 +1,5 @@
 const multer = require('multer');
-const { getUser, getAll, pendingRequests,search, updateUser, view,data, sendRequest, deleteUser, getUserFriends, followUser, unfollowUser } = require('../controllers/userController')
+const { getUser, getAll, pendingRequests,searchFriend,getPendingRequest, updateUser, view,data,acceptRequest, sendRequest,rejectSendingRequest, deleteUser, getUserFriends, followUser, unfollowUser } = require('../controllers/userController')
 const verifyToken = require('../middleware/auth');
 const userRouter = require('express').Router()
 
@@ -21,13 +21,16 @@ userRouter.get('/findAll', getAll)
 userRouter.get('/find/:id', getUser)
 // userRouter.get('/pendingRequests', verifyToken, pendingRequests)
 userRouter.get('/find/userfriends/:id', getUserFriends)
-userRouter.get('/search/:id', search)
+userRouter.get('/searchFriend/:query',searchFriend)
 
 // userRouter.put('/sendRequest/:id', verifyToken, sendRequest)
 userRouter.put('/update/:id', verifyToken, upload.fields([{ name: 'profilePic', maxCount: 1 }, { name: 'coverPic', maxCount: 1 }]), updateUser)
 // userRouter.get("/update/:id", verifyToken, view)
-userRouter.put("/follow/:id", verifyToken, followUser)
+userRouter.put("/follow/:id", verifyToken, sendRequest)
 userRouter.put('/unfollow/:id', verifyToken, unfollowUser)
+userRouter.put('/reject-request/:id', verifyToken, rejectSendingRequest)
+userRouter.get('/pendingReq/:id', verifyToken, getPendingRequest)
+userRouter.put('/accept-request/:id', verifyToken, acceptRequest)
 
 
 userRouter.delete('/delete/:id', verifyToken, deleteUser)
