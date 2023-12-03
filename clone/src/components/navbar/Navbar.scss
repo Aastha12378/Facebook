@@ -1,0 +1,88 @@
+// .container {
+//     height: 60px;
+//     width: 100%;
+// }
+
+.wrapper-nav {
+    // height: 5rem;
+    // width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f0eeee;
+}
+
+.wrapper .left > a {
+    text-decoration: none;
+    color: #fff;
+    font-size: 28px;
+    letter-spacing: 1px;
+}
+
+.right {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.searchForm {
+    display: flex;
+    align-items: center;
+    border: 1px solid #333;
+    border-radius: 20px;
+    padding: 0.5rem;
+    background-color: #fff;
+}
+
+.searchForm > input {
+    border: none;
+    outline: none;
+    padding-left: 0.25rem;
+}
+
+.searchForm > .searchIcon {
+    font-size: 20px;
+}
+
+.personImg {
+    height: 55px;
+    width: 55px;
+    object-fit: cover;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.modal{
+    position: absolute;
+    right: 0.25rem;
+    top: 3rem;
+    background-color: #fff;
+    padding: 1rem;
+    height: 6rem;
+    width: max-content;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    text-transform: capitalize;
+    box-shadow: 0px 5px 7px 9px rgba(0, 0, 0, 0.075);
+    text-decoration: none;
+    color: inherit;
+    margin-left: auto;
+
+    &:hover{
+        cursor: pointer;
+    }
+}
+
+.logout:hover{
+    font-weight: bold;
+}
+
+.updateProfile{
+    text-decoration: none;
+    color: black;
+
+    &:hover{
+        font-weight: bold;
+    }
+}
