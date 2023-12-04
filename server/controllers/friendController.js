@@ -1,7 +1,6 @@
 const User = require('../models/User');
 const FriendRequest = require('../models/Friend');
 
-// Create friend request
 const createFriendRequest = async (req, res) => {
   try {
     const senderId = req.user.id;

@@ -316,7 +316,7 @@ const data = async (req, res) => {
     }
   );
 };
-// Search for users
+
 const searchUsers = async (req, res) => {
   try {
     const { query } = req.params; // The search query

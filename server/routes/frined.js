@@ -5,6 +5,5 @@ const verifyToken = require('../middleware/auth');
 FriendRouter.post('/request/:userId',verifyToken, createFriendRequest);
 FriendRouter.get('/request/:userId',verifyToken, getFriendRequests);
 FriendRouter.put('/respond/:requestId/:response',verifyToken, respondToFriendRequest);
-// FriendRouter.delete('/rejectRequest/:senderId', verifyToken, rejectFriendRequest);
 
 module.exports = FriendRouter;
