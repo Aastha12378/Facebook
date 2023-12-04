@@ -172,7 +172,7 @@ const getUserFriends = async (req, res) => {
     }
 
     const userFriends = await Promise.all(
-      user.followings.map((friendId) => {
+      [...user.followings,...user.followers].map((friendId) => {
         return User.findById(friendId).select("-password");
       })
     );

@@ -5,25 +5,12 @@ import "./Comment.scss"
 import Format from '../format/Format'
 
 const Comment = ({ comment }) => {
+console.log("🚀 ~ file: Comment.jsx:8 ~ Comment ~ comment:", comment)
 
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user"))
 
-  const [commentAuthor, setCommentAuthor] = useState("")
   const [isLiked, setIsLiked] = useState(comment.likes.includes(user._id))
-
-  useEffect(() => {
-    const fetchCommentAuthor = async () => {
-      try {
-        const data = await request(`/user/find/${comment.userId}`, 'GET')
-        setCommentAuthor(data)
-      } catch (error) {
-        console.error(error)
-      }
-    }
-    fetchCommentAuthor()
-  }, [comment.userId])
-
   const handleLikeComment = async () => {
 
     try {
@@ -40,9 +27,9 @@ const Comment = ({ comment }) => {
     <>
       <div className="comment">
         <div className="commentLeft">
-          <img src={comment?.profilePic ? `http://localhost:3001/images/${comment?.profilePic}` : person} className="commentImg" alt='person' />
+          <img src={comment.userId?.profilePic ? `http://localhost:3001/images/${comment.userId?.profilePic}` : person} className="commentImg" alt='person' />
           <div className="commentDetails">
-            <h4>{commentAuthor?.username}</h4>
+            <h4>{comment.userId?.username}</h4>
             <span>{Format(comment.createdAt)}</span>
           </div>
           <div className="commentText">{comment.text}</div>

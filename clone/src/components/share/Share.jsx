@@ -2,15 +2,14 @@ import React, { useState } from 'react'
 import "./Share.scss"
 import { request } from '../../util/Request'
 import person from '../../img/person1.jpg'
+import Modal from 'react-modal';
 
 const Share = () => {
 
   const [desc, setDesc] = useState("")
   const [photo, setPhoto] = useState("")
-  
-  const token = localStorage.getItem("token");
+  const [modalIsOpen, setIsOpen] = React.useState(false);
   const userData = JSON.parse(localStorage.getItem("user"));
-  // console.log("🚀 ~ file: Share.jsx:13 ~ Share ~ userData:", userData)
 
   const handleCreatePost = async () => {
     try {
@@ -28,7 +27,7 @@ const Share = () => {
 
       const headers = {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        'Authorization': `Bearer ${localStorage.getItem("token")}`
       }
 
       const body = {
@@ -48,12 +47,10 @@ const Share = () => {
     <>
       <div className="share">
         <div className="shareTop">
-        {/* <img src={friend?.profilePic ? `http://localhost:3001/images/${friend?.profilePic}` : person} className="friendImg" alt="person" /> */}
           <img src={userData?.profilePic ? `http://localhost:3001/images/${userData?.profilePic}` : person} alt='person' className='img-fluid' />
           <input type="text" placeholder='Share your opinion' onChange={(e) => setDesc(e.target.value)} />
-          <button onClick={handleCreatePost}>POST</button>
+          <button type="button" class="btn btn-info btn-lg" onClick={() => setIsOpen(true)}>Post</button>
         </div>
-
         <div className="shareBottom">
           <div className="item">
             Live Video
@@ -68,17 +65,43 @@ const Share = () => {
             <i class="fa-solid fa-face-smile"></i>
           </div>
         </div>
-
         <input style={{ display: 'none' }} type="file" id="photo" onChange={(e) => setPhoto(e.target.files[0])} />
+      </div>
+      <Modal
+        isOpen={modalIsOpen}
+        onRequestClose={() => setIsOpen(false)}
+        contentLabel="Example Modal"
+        style={{
+          content: {
+            top: '50%',
+            left: '50%',
+            right: 'auto',
+            bottom: 'auto',
+            marginRight: '-50%',
+            transform: 'translate(-50%, -50%)',
+          }
+        }}
+      >
+      <div className='wrapper'>
+      <div className='d-flex flex-column'>
+        <label>Upload post</label>
+        <input type="file" id="photo" onChange={(e) => setPhoto(e.target.files[0])} />
         {
           photo && (
             <div className="photoContainer">
-              <h5 className="closeIcon" onClick={() => setPhoto("")} > <i class="fa-solid fa-xmark"></i></h5>
+              <h5 className="closeIcon" onClick={() => setPhoto("")} ><i class="fa fa-close"/></h5>
               <img src={URL.createObjectURL(photo)} className="photo" alt="" />
             </div>
           )
         }
-      </div>
+        </div>
+        <div className='d-flex flex-column'>
+        <label>Description:</label>
+        <textarea rows="4" cols="50" onChange={(e) => setDesc(e.target.value)}></textarea>
+        </div>
+        <button onClick={handleCreatePost}>Post</button>
+        </div>
+      </Modal>
     </>
   )
 }

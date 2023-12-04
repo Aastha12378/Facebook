@@ -18,12 +18,8 @@ const Posts = () => {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       }
-
-      const userQueryParam = user ? `&user=${user}` : '';
-
       try {
-        const data = await request(`/post/timelinePosts?${userQueryParam}`, 'GET', headers);
-        // console.log(data);
+        const data = await request(`/post/timelinePosts`, 'GET',headers);
         setPosts(data);
       } catch (error) {
         console.log("Error fetching timeline posts:", error);
@@ -34,18 +30,16 @@ const Posts = () => {
   }, [token, user])
 
   return (
-    <>
-      {/* <div className="container"> */}
       <div className="wrapper">
         <Share />
         <div className="posts">
-          {posts?.map((post) => (
+          {posts?.length>0
+          ?posts?.map((post) => (
             <Post post={post} key={post._id} />
-          ))}
+          ))
+          :<h3>No post Found</h3>}
         </div>
       </div>
-      {/* </div> */}
-    </>
   )
 }
 

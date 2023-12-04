@@ -108,11 +108,11 @@ const Profile = () => {
 
             <div className="profileData">
               <h2 className="username">{profileDetails?.username}</h2>
-              {id !== user._id && (
+              {id !== user?._id && (
                 <>
-                {(user.followers?.includes(id)||user.followings?.includes(id))
+                {(user?.followers?.includes(id)||user?.followings?.includes(id))
                 ?<button className="followBtn" onClick={handleUnFollow}>Unfollow</button>
-                :user.sendingReq.includes(id)
+                :user?.sendingReq?.includes(id)
                 ?<button className="followBtn" onClick={handleRejectRequest}>Requested</button>
                 :<button className="followBtn" onClick={handleSendRequest}>Follow</button>
                 }
@@ -120,14 +120,16 @@ const Profile = () => {
               )}
             </div>
 
-            {id === user._id && (
+            {id === user?._id && (
               <div><Share /></div>
             )}
 
             <div className="posts-p">
-              {userPosts?.map((post) => (
+              {userPosts?.length>0
+              ?userPosts?.map((post) => (
                 <Post key={post._id} post={post} />
-              ))}
+              ))
+              :<h3>No post uploaded!</h3>}
             </div>
           </div>
         </div>

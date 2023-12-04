@@ -1,5 +1,6 @@
 const User = require("../models/User");
 const Post = require("../models/Post");
+const Comment = require("../models/Comment");
 
 const getPost = async (req, res) => {
     try {
@@ -13,11 +14,23 @@ const getPost = async (req, res) => {
 const getUserPosts = async (req, res) => {
     // console.log(req.body);
     try {
-        const userPosts = await Post.find({ userId: req.params.id });
+        let userPosts = await Post.find({ userId: req.params.id }).populate({
+            path: 'userId',
+            model: 'User'
+        });
+        
+        const postsWithComments = await Promise.all(userPosts.map(async (post) => {
+            const comments = await Comment.find({ postId: post._id }).populate({
+                path: 'userId',
+                model: 'User'
+            });
+            return { post, comments };
+        }));
+
         if (userPosts == false || userPosts.length <= 0) {
             throw new Error("No posts from this user");
         } else {
-            return res.status(200).json(userPosts);
+            return res.status(200).json(postsWithComments);
         }
     } catch (error) {
         return res.status(500).json(error.message);
@@ -126,14 +139,28 @@ const dislikePost = async (req, res) => {
 
 const getTimelinePosts = async (req, res) => {
     try {
-        const currentUser = await User.findById(req.user.id);
-        const userPosts = await Post.find({ userId: currentUser._id });
+    const currentUser = await User.findById(req.user.id);
+
+    const userPosts = await Post.find({ userId: currentUser.id }).populate({
+        path: 'userId',
+        model: 'User'
+    });
         const friendPosts = await Promise.all(
-            currentUser.followings.map((friendId) => {
-                return Post.find({ userId: friendId })
+            [...currentUser.followings,...currentUser.followers].map((friendId) => {
+                return Post.find({ userId: friendId }).populate({
+                    path: 'userId',
+                    model: 'User'
+                })
             })
         );
-        return res.json(userPosts.concat(...friendPosts).sort((a, b) => b.createdAt - a.createdAt))
+        const postsWithComments = await Promise.all(userPosts.concat(...friendPosts).sort((a, b) => b.createdAt - a.createdAt)?.map(async (post) => {
+            const comments = await Comment.find({ postId: post._id }).populate({
+                path: 'userId',
+                model: 'User'
+            });
+            return { post, comments };
+        }));
+        return res.json(postsWithComments)
     } catch (err) {
         res.status(500).json(err);
     }

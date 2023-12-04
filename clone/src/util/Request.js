@@ -3,7 +3,7 @@ const BASE_URL = "http://localhost:3001"
 export const request = async (url, method, headers = {}, body = {}, isNotStringified = false) => {
     let res
     let data
-    switch (method) {
+        switch (method) {
         case 'GET':
             res = await fetch(BASE_URL + url, { headers })
             data = await res.json()

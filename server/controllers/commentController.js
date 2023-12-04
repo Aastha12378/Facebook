@@ -1,4 +1,5 @@
 const Comment = require("../models/Comment");
+const User = require("../models/User");
 
 
 const getCommentsFromPost = async (req, res) => {
@@ -15,8 +16,9 @@ const getCommentsFromPost = async (req, res) => {
 const createComment = async (req, res) => {
     try {
         const createdComment = await Comment.create({ ...req.body, userId: req.user.id })
-
-        return res.status(201).json(createdComment)
+        const userData= await User.findById(req.user.id);
+        const data={createdComment,userId:userData}
+        return res.status(201).json(data)
     } catch (error) {
         return res.status(500).json(error.message)
     }
